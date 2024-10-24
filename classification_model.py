@@ -6,9 +6,8 @@ import matplotlib.pyplot as plt
 from keras import layers, models
 from keras.src.legacy.preprocessing.image import ImageDataGenerator
 
-
-train_dir = 'data/cats_dogs/train'
-validation_dir = 'data/cats_dogs/validation'
+train_dir = 'data/ev_sliced/training'
+validation_dir = 'data/ev_sliced/validation'
 
 # Datasets
 train_datagen = ImageDataGenerator(
@@ -28,46 +27,49 @@ validation_datagen = ImageDataGenerator(
 # Generators
 train_generator = train_datagen.flow_from_directory(
     train_dir,
-    target_size=(150, 150),
+    target_size=(100, 100),
     batch_size=25,
-    class_mode='binary'
+    class_mode='categorical'
 )
 validation_generator = validation_datagen.flow_from_directory(
     validation_dir,
-    target_size=(150, 150),
+    target_size=(100, 100),
     batch_size=25,
-    class_mode='binary'
+    class_mode='categorical'
 )
 
 
 # Model
 model = models.Sequential()
 
-model.add(layers.Conv2D(32, (3, 3), activation="relu", input_shape=(150, 150, 3)))
+model.add(layers.Conv2D(32, (3, 3), activation="relu", input_shape=(100, 100, 3)))
 model.add(layers.MaxPooling2D(pool_size=(2, 2)))
 
 model.add(layers.Conv2D(64, (3, 3), activation="relu"))
 model.add(layers.MaxPooling2D(pool_size=(2, 2)))
 
+model.add(layers.Conv2D(128, (3, 3), activation="relu"))
+model.add(layers.MaxPooling2D(pool_size=(2, 2)))
+
 model.add(layers.Flatten())
 
 model.add(layers.Dense(128, activation='relu'))
-model.add(layers.Dense(1, activation='sigmoid'))
+model.add(layers.Dense(3, activation='softmax'))
 
-model.compile(
-    optimizer='adam',
-    loss='binary_crossentropy',
-    metrics=['accuracy']
-)
+# Compile the model
+model.compile(loss='categorical_crossentropy',
+              optimizer='adam',
+              metrics=['accuracy'])
 
-model.summary()
 
-# Training
+# Train the model
 history = model.fit(
     train_generator,
-    epochs=100,
+    epochs=100 ,
     validation_data=validation_generator
 )
+
+model.save('models/ev_slices.keras')
 
 # Plot training & validation accuracy values
 plt.plot(history.history['accuracy'])
@@ -77,5 +79,3 @@ plt.ylabel('Accuracy')
 plt.xlabel('Epoch')
 plt.legend(['Train', 'Validation'], loc='upper left')
 plt.show()
-
-model.save('models/test_model.keras')
