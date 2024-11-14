@@ -1,5 +1,3 @@
-from PIL import Image
-import os
 import random
 import shutil
 
@@ -32,9 +30,6 @@ def split_images_in_folder(input_folder, output_folder, block_size=(100, 100)):
 from PIL import Image
 import os
 
-from PIL import Image
-import os
-
 def split_image(image, output_folder, block_size=(100, 100)):
     output_folder = os.path.join(os.getcwd(), output_folder)
 
@@ -60,7 +55,7 @@ def split_image(image, output_folder, block_size=(100, 100)):
 
 
 
-def split_dataset(folder_path, split_ratio):
+def split_dataset(folder_path, split_ratio, total_images):
     var = os.path.basename(os.path.normpath(folder_path))
     training_path = f"./data/{var}/training/"
     validation_path = f"./data/{var}/validation/"
@@ -71,14 +66,15 @@ def split_dataset(folder_path, split_ratio):
     for class_folder in os.listdir(folder_path):
         class_path = os.path.join(folder_path, class_folder)
 
-        if os.path.isdir(class_path):  # Check if it's a directory
+        if os.path.isdir(class_path):
             images = [f for f in os.listdir(class_path) if os.path.isfile(os.path.join(class_path, f))]
-            random.shuffle(images)  # Shuffle images
+            random.shuffle(images)
 
-            split_index = int(len(images) * split_ratio)
+            selected_images = images[:total_images] if total_images < len(images) else images
+            split_index = int(len(selected_images) * split_ratio)
 
-            training_images = random.sample(images, split_index)
-            validation_images = [img for img in images if img not in training_images]
+            training_images = random.sample(selected_images, split_index)
+            validation_images = [img for img in selected_images if img not in training_images]
 
             os.makedirs(os.path.join(training_path, class_folder), exist_ok=True)
             os.makedirs(os.path.join(validation_path, class_folder), exist_ok=True)
@@ -86,12 +82,11 @@ def split_dataset(folder_path, split_ratio):
             for image in training_images:
                 shutil.copy(os.path.join(class_path, image), os.path.join(training_path, class_folder, image))
 
-            # Copy images to validation set
             for image in validation_images:
                 shutil.copy(os.path.join(class_path, image), os.path.join(validation_path, class_folder, image))
 
             print(f"Processed class: {class_folder}")
             print(f"Training images: {len(training_images)}, Validation images: {len(validation_images)}")
 
-# split_dataset('datasets/ev_sliced', 0.9)
-# split_images_in_folder('datasets/EV/cells', 'datasets/EV_sliced/cells', (128, 128))
+split_dataset('datasets/EV_sliced', 0.8, 125)
+# split_images_in_folder('datasets/EV/background', 'datasets/EV_sliced/background', (256, 256))
