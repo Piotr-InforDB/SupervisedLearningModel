@@ -9,6 +9,10 @@ from keras.src.legacy.preprocessing.image import ImageDataGenerator
 train_dir = 'data/ev_sliced/training'
 validation_dir = 'data/ev_sliced/validation'
 
+# 0: Case
+# 1: Cells
+# 2: Connectors
+
 # Datasets
 train_datagen = ImageDataGenerator(
     rescale=1./255,
