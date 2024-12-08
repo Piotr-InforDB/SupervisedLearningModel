@@ -5,19 +5,19 @@ import matplotlib.pyplot as plt
 
 from keras import layers, models
 from keras.src.legacy.preprocessing.image import ImageDataGenerator
+from keras.src.callbacks import EarlyStopping
 
 train_dir = 'data/EV_sliced/training'
 validation_dir = 'data/EV_sliced/validation'
 
 # 0: Background
-# 0: Case
-# 1: Cells
-# 2: Connectors
+# 1: Case
+# 2: Cells
+# 3: Connectors
 
-image_size = 256
-image_count = 100
-epochs = 50
-
+image_size = 128
+image_count = 0
+epochs = 2000
 batch_size = 25
 
 # Datasets
@@ -55,12 +55,12 @@ model = models.Sequential()
 
 model.add(layers.Conv2D(32, (3, 3), activation="relu", input_shape=(image_size, image_size, 3)))
 model.add(layers.MaxPooling2D(pool_size=(2, 2)))
-
 model.add(layers.Conv2D(64, (3, 3), activation="relu"))
 model.add(layers.MaxPooling2D(pool_size=(2, 2)))
-
 model.add(layers.Conv2D(128, (3, 3), activation="relu"))
 model.add(layers.MaxPooling2D(pool_size=(2, 2)))
+
+model.add(layers.Dropout(0.2))
 
 model.add(layers.Flatten())
 
@@ -70,21 +70,30 @@ model.add(layers.Dense(4, activation='softmax'))
 # Compile the model
 model.compile(loss='categorical_crossentropy',
               optimizer='adam',
-              metrics=['accuracy'])
+              metrics=['accuracy']
+)
 
+# EarlyStopping callback
+early_stopping = EarlyStopping(
+    monitor='val_accuracy',
+    patience=30,
+    restore_best_weights=True,
+)
 
 # Train the model
 history = model.fit(
     train_generator,
     epochs=epochs,
-    validation_data=validation_generator
+    validation_data=validation_generator,
+    callbacks=[early_stopping]
 )
 
 # Average accuracy
-avg_val_accuracy = sum(history.history['val_accuracy'][-5:]) / 5
-print(f"Average val_accuracy of the last 5 epochs: {avg_val_accuracy:.4f}")
+avg_val_accuracy = sum(history.history['val_accuracy'][-10:]) / 10
+print(f"Average val_accuracy of the last 10 epochs: {avg_val_accuracy:.4f}")
 
-model.save(f'models/classifications/{image_size}_{image_count}_{epochs}.keras')
+# model.save(f'models/classifications_architecture/{image_size}_{image_count}_{epochs}.keras')
+model.save(f'models/ev_slices2.keras')
 
 plt.plot(history.history['accuracy'])
 plt.plot(history.history['val_accuracy'])

@@ -1,4 +1,5 @@
 import os
+import numpy as np
 os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
 
 import matplotlib.pyplot as plt
@@ -7,8 +8,10 @@ from keras import layers, models
 from keras.src.legacy.preprocessing.image import ImageDataGenerator
 
 
-size = 128
-batch = 25
+
+size = 256
+batch = 10
+epochs = 65
 
 # Datasets
 train_datagen = ImageDataGenerator(
@@ -25,14 +28,14 @@ train_datagen = ImageDataGenerator(
 datagen = ImageDataGenerator(rescale=1./255)
 
 train_generator = train_datagen.flow_from_directory(
-    'data/anomaly/training',
+    'data/battery_module/training',
     target_size=(size, size),
     batch_size=batch,
     class_mode='input'
 )
 
 validation_generator = datagen.flow_from_directory(
-    'data/anomaly/validation',
+    'data/battery_module/validation',
     target_size=(size, size),
     batch_size=batch,
     class_mode='input'
@@ -69,12 +72,31 @@ model.summary()
 
 history = model.fit(
     train_generator,
-    epochs=25,
+    epochs=epochs,
     validation_data=validation_generator,
     shuffle=True
 )
 
-model.save('models/anomaly_cells.keras')
+model.save('models/module_anomaly_cells.keras')
+
+def calculate_reconstruction_errors(model, generator):
+    errors = []
+    num_batches = len(generator)  # Calculate total batches in one epoch
+
+    for i, batch in enumerate(generator):
+        if i >= num_batches:  # Stop after one epoch
+            break
+        inputs, _ = batch
+        reconstructions = model.predict(inputs)
+        batch_errors = np.mean(np.square(inputs - reconstructions), axis=(1, 2, 3))
+        errors.extend(batch_errors)
+
+    return np.array(errors)
+
+# 3. Calculate reconstruction errors on validation set (non-anomalous)
+val_errors = calculate_reconstruction_errors(model, validation_generator)
+threshold = np.percentile(val_errors, 95)  # Set threshold at 95th percentile of validation errors
+print(f"Reconstruction error threshold: {threshold}")
 
 # Plot the training and validation loss at each epoch
 loss = history.history['loss']

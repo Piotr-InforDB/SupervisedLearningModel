@@ -24,12 +24,15 @@
             opacity: .25;
         }
         [data-classification="0"]{
-            background-color: green;
+            background-color: black;
         }
         [data-classification="1"]{
             background-color: blue;
         }
         [data-classification="2"]{
+            background-color: green;
+        }
+        [data-classification="3"]{
             background-color: red;
         }
 
@@ -72,7 +75,7 @@
 
                 ctx.drawImage(img, 0, 0, img.width, img.height);
 
-                let blockSize = 500;
+                let blockSize = 256;
                 for (let y = 0; y < img.height; y += blockSize) {
 
                     $('[data-image]').append(`<div data-row="${y}" class="d-flex flex-row flex-nowrap" ></div>`)

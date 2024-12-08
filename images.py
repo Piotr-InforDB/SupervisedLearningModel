@@ -88,5 +88,5 @@ def split_dataset(folder_path, split_ratio, total_images):
             print(f"Processed class: {class_folder}")
             print(f"Training images: {len(training_images)}, Validation images: {len(validation_images)}")
 
-split_dataset('datasets/EV_sliced', 0.8, 125)
-# split_images_in_folder('datasets/EV/background', 'datasets/EV_sliced/background', (256, 256))
+split_dataset('datasets/EV_sliced', 0.85, 10000)
+# split_images_in_folder('datasets/EV/background', 'datasets/EV_sliced/background', (128, 128))

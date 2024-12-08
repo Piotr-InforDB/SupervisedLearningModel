@@ -7,16 +7,16 @@ from keras import models
 import numpy as np
 
 
-block_size = (500, 500)
+block_size = (128, 128)
 
 app = Flask(__name__)
 CORS(app)
 
-model = models.load_model('models/ev_slices.keras')
+model = models.load_model('models/ev_slices2.keras')
 
 def classifyImage(image):
     image = image.convert("RGB")
-    image = image.resize((100, 100))
+    image = image.resize(block_size)
     image_array = np.array(image) / 255.0
     image_array = np.expand_dims(image_array, axis=0)
     predictions = model.predict(image_array)
