@@ -9,23 +9,16 @@ from keras.src.legacy.preprocessing.image import ImageDataGenerator
 
 
 
-size = 256
-batch = 10
-epochs = 65
+size = 512
+batch = 20
+epochs = 75
 
 # Datasets
 train_datagen = ImageDataGenerator(
     rescale=1./255,
-    # rotation_range=40,
-    # width_shift_range=0.2,
-    # height_shift_range=0.2,
-    # shear_range=0.2,
-    # zoom_range=0.2,
-    # horizontal_flip=True,
-    # fill_mode='nearest'
 )
-
 datagen = ImageDataGenerator(rescale=1./255)
+
 
 train_generator = train_datagen.flow_from_directory(
     'data/battery_module/training',
@@ -33,20 +26,18 @@ train_generator = train_datagen.flow_from_directory(
     batch_size=batch,
     class_mode='input'
 )
-
 validation_generator = datagen.flow_from_directory(
     'data/battery_module/validation',
     target_size=(size, size),
     batch_size=batch,
     class_mode='input'
 )
-
-# anomaly_generator = datagen.flow_from_directory(
-#     'data/anomaly/anomaly',
-#     target_size=(size, size),
-#     batch_size=batch,
-#     class_mode='input'
-# )
+anomaly_generator = datagen.flow_from_directory(
+    'data/battery_module/anomaly',
+    target_size=(size, size),
+    batch_size=batch,
+    class_mode='input'
+)
 
 # Model Definition
 model = models.Sequential()
@@ -77,26 +68,13 @@ history = model.fit(
     shuffle=True
 )
 
-model.save('models/module_anomaly_cells.keras')
+model.save('models/anomaly.keras')
 
-def calculate_reconstruction_errors(model, generator):
-    errors = []
-    num_batches = len(generator)  # Calculate total batches in one epoch
+validation_error = model.evaluate(validation_generator)
+anomaly_error = model.evaluate(anomaly_generator)
 
-    for i, batch in enumerate(generator):
-        if i >= num_batches:  # Stop after one epoch
-            break
-        inputs, _ = batch
-        reconstructions = model.predict(inputs)
-        batch_errors = np.mean(np.square(inputs - reconstructions), axis=(1, 2, 3))
-        errors.extend(batch_errors)
-
-    return np.array(errors)
-
-# 3. Calculate reconstruction errors on validation set (non-anomalous)
-val_errors = calculate_reconstruction_errors(model, validation_generator)
-threshold = np.percentile(val_errors, 95)  # Set threshold at 95th percentile of validation errors
-print(f"Reconstruction error threshold: {threshold}")
+print("Recon. error for the validation (normal) data is: ", validation_error)
+print("Recon. error for the anomaly data is: ", anomaly_error)
 
 # Plot the training and validation loss at each epoch
 loss = history.history['loss']

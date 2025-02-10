@@ -6,8 +6,8 @@ from keras import models
 from keras.src.legacy.preprocessing.image import image_utils
 import matplotlib.pyplot as plt
 
-model = models.load_model('models/anomaly_cells.keras')
-threshold = 0.0004
+model = models.load_model('models/anomaly.keras')
+threshold = 0.0008
 
 def preprocess_image(image_path):
     img = image_utils.load_img(image_path, target_size=(512, 512))
@@ -63,5 +63,5 @@ def display_all_results(images, filenames, statuses, reconstruction_errors, pred
     plt.tight_layout()
     plt.show()
 
-image_dir = 'test/classified_anomaly'
+image_dir = 'test/anomaly'
 process_images_in_directory(image_dir)
